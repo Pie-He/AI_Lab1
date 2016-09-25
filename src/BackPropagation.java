@@ -19,7 +19,7 @@ public class BackPropagation {
         hidden = new double[hiddenNumber];
         output = new double[outputNumber];
         init();
-        double r = 0.08;
+        double r = 0.2;
         for (int count = 0; count < trainNumber; count++) {
             for (int num = 0; num < allInput.length; num++) {
                 double[] input = allInput[num];
@@ -47,17 +47,17 @@ public class BackPropagation {
                     }
 
                     //调整bias1
-                   // double delta = r * hidden[h] * (1 - hidden[h]) * sum;
-                   // biasWeight1 += delta;
+                    double delta = r * hidden[h] * (1 - hidden[h]) * sum;
+                    biasWeight1 += delta;
                 }
 
                 //调整bias2
-//                for (int o = 0; o < outputNumber; o++) {
-//                    if (Math.abs(correct[o] - output[o]) > 0.5) {
-//                        double delta = r * (correct[o] - output[o]) * output[o] * (1 - output[o]);//hidden权重
-//                        biasWeight2 += delta;
-//                    }
-//                }
+                for (int o = 0; o < outputNumber; o++) {
+                   // if (Math.abs(correct[o] - output[o]) > 0.5) {
+                        double delta = r * (correct[o] - output[o]) * output[o] * (1 - output[o]);//hidden权重
+                        biasWeight2 += delta;
+                    //}
+                }
             }
         }
         List<String> outText = new LinkedList<>();
