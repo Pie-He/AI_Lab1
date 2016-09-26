@@ -7,10 +7,14 @@ public class BackPropagation {
     private double[] hidden;
     private double[][] weight1;
     private double[][] weight2;
-    private double biasWeight1;
-    private double biasWeight2;
+    private double[] biasWeight1;
+    private double[] biasWeight2;
     private double bias1 = 1;
     private double bias2 = 1;
+
+    public BackPropagation() {
+
+    }
 
     public void train(String outputPath, int inputNumber, int hiddenNumber,
                       int outputNumber, double[][] allInput, double[][] allOutput, int trainNumber) throws IOException {
@@ -18,6 +22,8 @@ public class BackPropagation {
         weight2 = new double[hiddenNumber][outputNumber];
         hidden = new double[hiddenNumber];
         output = new double[outputNumber];
+        biasWeight1 = new double[hiddenNumber];
+        biasWeight2 = new double[outputNumber];
         init();
         double r = 0.2;
         for (int count = 0; count < trainNumber; count++) {
@@ -34,9 +40,9 @@ public class BackPropagation {
                     //调整第二层
                     for (int o = 0; o < outputNumber; o++) {
                         //..if (Math.abs(correct[o] - output[o]) > 0.5) {
-                            double delta = r * (correct[o] - output[o]) * output[o] * (1 - output[o]) * hidden[h];//hidden权重
-                            sum += (weight2[h][o] * output[o] * (1 - output[o]) * (correct[o] - output[o]));
-                            weight2[h][o] += delta;
+                        double delta = r * (correct[o] - output[o]) * output[o] * (1 - output[o]) * hidden[h];//hidden权重
+                        sum += (weight2[h][o] * output[o] * (1 - output[o]) * (correct[o] - output[o]));
+                        weight2[h][o] += delta;
                         //}
                     }
 
@@ -48,14 +54,14 @@ public class BackPropagation {
 
                     //调整bias1
                     double delta = r * hidden[h] * (1 - hidden[h]) * sum;
-                    biasWeight1 += delta;
+                    biasWeight1[h] += delta;
                 }
 
                 //调整bias2
                 for (int o = 0; o < outputNumber; o++) {
-                   // if (Math.abs(correct[o] - output[o]) > 0.5) {
-                        double delta = r * (correct[o] - output[o]) * output[o] * (1 - output[o]);//hidden权重
-                        biasWeight2 += delta;
+                    // if (Math.abs(correct[o] - output[o]) > 0.5) {
+                    double delta = r * (correct[o] - output[o]) * output[o] * (1 - output[o]);//hidden权重
+                    biasWeight2[o] += delta;
                     //}
                 }
             }
@@ -67,10 +73,16 @@ public class BackPropagation {
                 s += weight1[i][j] + " ";
             }
             outText.add(s);
-            System.out.println(s);
+            //System.out.println(s);
         }
+        {
+            String s = "";
+            for (double b : biasWeight1) {
+                s += b + " ";
+            }
+            outText.add(s);
 
-        outText.add(String.valueOf(biasWeight1));
+        }
 
         for (int i = 0; i < hiddenNumber; i++) {
             String s = "";
@@ -79,20 +91,26 @@ public class BackPropagation {
             }
             outText.add(s);
         }
-        outText.add(String.valueOf(biasWeight2));
+        {
+            String s = "";
+            for (double b : biasWeight2) {
+                s += b + " ";
+            }
+            outText.add(s);
 
+        }
         FileIO.writeFile(outputPath, outText);
     }
 
-    private void weighting(double[] input, double bias, double[][] weight, double biasWeight, double[] output) {
+    private void weighting(double[] input, double bias, double[][] weight, double[] biasWeight, double[] output) {
         for (int i = 0; i < output.length; i++) {
             double sum = 0;
             for (int j = 0; j < input.length; j++) {
                 sum += (input[j] * weight[j][i]);
             }
-            sum += biasWeight * bias;
+            sum += biasWeight[i] * bias;
             output[i] = this.sigmo(sum);
-           // System.out.println(output[i]);
+            // System.out.println(output[i]);
         }
     }
 
@@ -117,41 +135,61 @@ public class BackPropagation {
 //                weight2[j][i] /= sum;
 //            }
         }
-        biasWeight1 = Math.random() * 2 - 1;
+        for (int i = 0; i < biasWeight1.length; i++) {
+            biasWeight1[i] = Math.random() * 2 - 1;
 
-        biasWeight2 = Math.random() * 2 - 1;
+        }
+        for (int i = 0; i < biasWeight2.length; i++) {
+            biasWeight2[i] = Math.random() * 2 - 1;
+
+        }
 
     }
 
     public void load(String path, int inputNumber, int hiddenNumber,
-                              int outputNumber) throws IOException {
+                     int outputNumber) throws IOException {
         weight1 = new double[inputNumber][hiddenNumber];
         weight2 = new double[hiddenNumber][outputNumber];
         hidden = new double[hiddenNumber];
         output = new double[outputNumber];
+        biasWeight1 = new double[hiddenNumber];
+        biasWeight2 = new double[outputNumber];
         List<String> strs = FileIO.readFile(path);
+        //System.out.println("filesize:"+strs.size());
         int line = 0;
+        //System.out.println("inputNumber:"+inputNumber);
         for (; line < inputNumber; line++) {
-            String[] ss = strs.get(line).split(" ");
+            String[] ss1 = strs.get(line).split(" ");
             for (int j = 0; j < hiddenNumber; j++) {
-                weight1[line][j] = Double.parseDouble(ss[j]);
+                weight1[line][j] = Double.parseDouble(ss1[j]);
             }
         }
 
-        biasWeight1=Double.parseDouble(strs.get(line));
+
+        String[] ss2 = strs.get(line).split(" ");
+        for (int j = 0; j < hiddenNumber; j++) {
+            biasWeight1[j] = Double.parseDouble(ss2[j]);
+        }
+
         line++;
-        for (; line < hiddenNumber; line++) {
-            String[] ss = strs.get(line).split(" ");
+        for (int i = 0; i < hiddenNumber; i++, line++) {
+            String[] ss3 = strs.get(line).split(" ");
             for (int j = 0; j < outputNumber; j++) {
-                weight2[line][j] = Double.parseDouble(ss[j]);
+                weight2[i][j] = Double.parseDouble(ss3[j]);
             }
         }
+        String[] ss4 = strs.get(line).split(" ");
+        for (int j = 0; j < outputNumber; j++) {
+            biasWeight2[j] = Double.parseDouble(ss4[j]);
+        }
 
+        // System.out.println("line:"+line);
     }
 
-    public double[] getResult(double[] input,String path, int inputNumber, int hiddenNumber,
+    public double[] getResult(double[] input, String path, int inputNumber, int hiddenNumber,
                               int outputNumber) throws IOException {
-        this.load(path,  inputNumber,  hiddenNumber,  outputNumber);
+        if (weight1 == null)
+            this.load(path, inputNumber, hiddenNumber, outputNumber);
         this.weighting(input, bias1, weight1, biasWeight1, hidden);
         this.weighting(hidden, bias2, weight2, biasWeight2, output);
         return output;
