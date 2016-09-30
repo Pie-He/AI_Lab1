@@ -25,7 +25,7 @@ public class BackPropagation {
         biasWeight1 = new double[hiddenNumber];
         biasWeight2 = new double[outputNumber];
         init();
-        double r = 0.2;
+        double r = 0.08;
         for (int count = 0; count < trainNumber; count++) {
             for (int num = 0; num < allInput.length; num++) {
                 double[] input = allInput[num];
